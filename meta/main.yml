@@ -2,7 +2,7 @@
 dependencies: []
 
 galaxy_info:
-  role_name: ludus_rustdesk
+  role_name: ludus_devbox
   author: beardhammer
   description: An Ansible role that preps Windows for Dev
   company: None
