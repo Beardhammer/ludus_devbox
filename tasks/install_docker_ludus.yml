@@ -49,7 +49,7 @@
     path: \Custom
     actions:
       - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-      arguments: 'Remove-Item -Force c:\programdata\docker\panic.log; Start-Service docker'
+        arguments: 'Remove-Item -Force c:\programdata\docker\panic.log; Start-Service docker'
     triggers:
       - type: boot
     username: SYSTEM
