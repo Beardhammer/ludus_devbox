@@ -14,9 +14,9 @@
 - name: Disable Windows Defender
   ansible.windows.win_feature:
     name:
-    - Windows-Defender
+      - Windows-Defender
     state: absent
-  ignore_errors: yes
+  ignore_errors: true
   register: defender
 
 - name: Warm the proxy with the image we'll likely use for building payloads
