@@ -1,0 +1,42 @@
+- name: install docker
+  include_tasks: install_docker_ludus.yml
+
+- name: check existing docker networks
+  win_shell: "docker network list"
+  register: network_list
+
+
+- name: Add bridge network if needed
+  win_shell: "docker network create --driver nat bridge"
+  when: '"bridge" not in network_list.stdout'
+
+
+- name: Disable Windows Defender
+  ansible.windows.win_feature:
+    name:
+    - Windows-Defender
+    state: absent
+  ignore_errors: yes
+  register: defender
+
+- name: Warm the proxy with the image we'll likely use for building payloads
+  ansible.windows.win_powershell:
+    script: |
+      docker pull mcr.microsoft.com/dotnet/framework/sdk:3.5
+  register: dockerpull1
+  retries: 5
+  delay: 10
+  until: not dockerpull1.error
+
+
+- name: Reboot machine so defender removal takes effect
+  ansible.windows.win_reboot:
+  when: defender.reboot_required
+
+- name: Disable Domain firewall
+  community.windows.win_firewall:
+    state: disabled
+    profiles:
+      - Domain
+      - Public
+      - Private

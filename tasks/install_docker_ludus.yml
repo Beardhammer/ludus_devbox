@@ -1,0 +1,65 @@
+- set_fact:
+    docker_version: 28.0.4
+
+- name: Make docker directory
+  ansible.windows.win_file:
+    path: c:\docker
+    state: directory
+
+- name: Download Docker zip
+  ansible.windows.win_get_url:
+    url: "https://download.docker.com/win/static/stable/x86_64/docker-{{ docker_version }}.zip"
+    dest: "c:\\docker\\docker-{{ docker_version }}.zip"
+
+- name: Unzip docker zip
+  community.windows.win_unzip:
+    src: "c:\\docker\\docker-{{ docker_version }}.zip"
+    dest: c:\docker
+    creates: c:\docker\docker
+
+- name: Install Containers Feature
+  ansible.windows.win_feature:
+    name:
+    - Containers
+  register: containers_feature
+
+- name: Reboot machine so container feature install takes effect
+  ansible.windows.win_reboot:
+  when: containers_feature.reboot_required
+
+- name: Get info about docker service
+  ansible.windows.win_service_info:
+    name: docker
+  register: docker_service
+
+- name: Register docker service
+  ansible.windows.win_command: c:\docker\docker\dockerd.exe --register-service --exec-opt isolation=process
+  when: not docker_service.exists
+
+- name: Start docker service
+  ansible.windows.win_service:
+    name: docker
+    state: started
+
+- name: Add docker path to PATH
+  ansible.windows.win_path:
+    elements:
+    - c:\docker\docker
+
+- name: Create task clean up the panic.log file at boot
+  community.windows.win_scheduled_task:
+    name: TriggerTask
+    path: \Custom
+    actions:
+    - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+      arguments: 'Remove-Item -Force c:\programdata\docker\panic.log; Start-Service docker'
+    triggers:
+    - type: boot
+    username: SYSTEM
+    compatibility: 4
+
+- name: Disable Telemetry
+  win_shell: ".\\disable-telemetry.ps1"
+  args:
+    chdir: 'c:\ludus\scripts'
+  register: disable_telemetry
