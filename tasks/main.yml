@@ -1,7 +1,7 @@
-- name: install docker
+- name: Install docker
   include_tasks: install_docker_ludus.yml
 
-- name: check existing docker networks
+- name: Check existing docker networks
   win_shell: "docker network list"
   register: network_list
 
@@ -27,7 +27,6 @@
   retries: 5
   delay: 10
   until: not dockerpull1.error
-
 
 - name: Reboot machine so defender removal takes effect
   ansible.windows.win_reboot:
